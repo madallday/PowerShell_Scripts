@@ -41,12 +41,12 @@
 
             ProcessName Size     TopLeft  BottomRight
             ----------- ----     -------  -----------
-            powershell  1262,642 2040,142 3302,784   
+            powershell  1262,642 2040,142 3302,784
 
             Description
             -----------
             Set the coordinates on the window for the process PowerShell.exe
-        
+
     #>
     [OutputType('System.Automation.WindowInfo')]
     [cmdletbinding()]
@@ -88,8 +88,8 @@
         $Rectangle = New-Object RECT
         $Handle = (Get-Process -Name $ProcessName).MainWindowHandle
         $Return = [Window]::GetWindowRect($Handle,[ref]$Rectangle)
-        If (-NOT $PSBoundParameters.ContainsKey('Width')) {            
-            $Width = $Rectangle.Right - $Rectangle.Left            
+        If (-NOT $PSBoundParameters.ContainsKey('Width')) {
+            $Width = $Rectangle.Right - $Rectangle.Left
         }
         If (-NOT $PSBoundParameters.ContainsKey('Height')) {
             $Height = $Rectangle.Bottom - $Rectangle.Top
@@ -116,7 +116,7 @@
                     BottomRight = $BottomRight
                 }
                 $Object.PSTypeNames.insert(0,'System.Automation.WindowInfo')
-                $Object            
+                $Object
             }
         }
     }

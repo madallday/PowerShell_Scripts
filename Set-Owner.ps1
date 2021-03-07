@@ -39,7 +39,7 @@
             Changes the owner of test.txt to Domain\bprox
 
         .EXAMPLE
-            Set-Owner -Path C:\temp -Recurse 
+            Set-Owner -Path C:\temp -Recurse
 
             Description
             -----------
@@ -178,12 +178,12 @@
                         }
                     }
                 } Else {
-                    If ($PSCmdlet.ShouldProcess($Item, 'Set Directory Owner')) {                        
+                    If ($PSCmdlet.ShouldProcess($Item, 'Set Directory Owner')) {
                         Try {
                             $Item.SetAccessControl($DirOwner)
                         } Catch {
                             Write-Warning "Couldn't take ownership of $($Item.FullName)! Taking FullControl of $($Item.Parent.FullName)"
-                            $Item.Parent.SetAccessControl($DirAdminAcl) 
+                            $Item.Parent.SetAccessControl($DirAdminAcl)
                             $Item.SetAccessControl($DirOwner)
                         }
                     }
@@ -197,10 +197,10 @@
             }
         }
     }
-    End {  
+    End {
         #Remove priviledges that had been granted
-        [void][TokenAdjuster]::RemovePrivilege("SeRestorePrivilege") 
-        [void][TokenAdjuster]::RemovePrivilege("SeBackupPrivilege") 
-        [void][TokenAdjuster]::RemovePrivilege("SeTakeOwnershipPrivilege")     
+        [void][TokenAdjuster]::RemovePrivilege("SeRestorePrivilege")
+        [void][TokenAdjuster]::RemovePrivilege("SeBackupPrivilege")
+        [void][TokenAdjuster]::RemovePrivilege("SeTakeOwnershipPrivilege")
     }
 }

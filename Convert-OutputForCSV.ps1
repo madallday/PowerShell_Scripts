@@ -28,7 +28,7 @@
             Created: 24 Jan 2014
             Version History:
                 1.1 - 02 Feb 2014
-                    -Removed OutputOrder parameter as it is no longer needed; inputobject order is now respected 
+                    -Removed OutputOrder parameter as it is no longer needed; inputobject order is now respected
                     in the output object
                 1.0 - 24 Jan 2014
                     -Initial Creation
@@ -37,17 +37,17 @@
             $Output = 'PSComputername','IPAddress','DNSServerSearchOrder'
 
             Get-WMIObject -Class Win32_NetworkAdapterConfiguration -Filter "IPEnabled='True'" |
-            Select-Object $Output | Convert-OutputForCSV | 
-            Export-Csv -NoTypeInformation -Path NIC.csv    
-            
+            Select-Object $Output | Convert-OutputForCSV |
+            Export-Csv -NoTypeInformation -Path NIC.csv
+
             Description
             -----------
-            Using a predefined set of properties to display ($Output), data is collected from the 
+            Using a predefined set of properties to display ($Output), data is collected from the
             Win32_NetworkAdapterConfiguration class and then passed to the Convert-OutputForCSV
             funtion which expands any property with a collection so it can be read properly prior
             to being sent to Export-Csv. Properties that had a collection will be viewed as a stack
-            in the spreadsheet.        
-            
+            in the spreadsheet.
+
     #>
     #Requires -Version 3.0
     [cmdletbinding()]
@@ -59,7 +59,7 @@
         [string]$OutputPropertyType = 'Stack'
     )
     Begin {
-        $PSBoundParameters.GetEnumerator() | ForEach {
+        $PSBoundParameters.GetEnumerator() | ForEach-Object {
             Write-Verbose "$($_)"
         }
         $FirstRun = $True
@@ -82,21 +82,21 @@
             Write-Verbose "Properties Found that have collections:`n $(($Properties_Collection) -join ', ')"
             Write-Verbose "Properties Found that have no collections:`n $(($Properties_NoCollection) -join ', ')"
         }
- 
-        $InputObject | ForEach {
+
+        $InputObject | ForEach-Object {
             $Line = $_
             $stringBuilder = New-Object Text.StringBuilder
             $Null = $stringBuilder.AppendLine("[pscustomobject] @{")
 
-            $OutputOrder | ForEach {
+            $OutputOrder | ForEach-Object {
                 If ($OutputPropertyType -eq 'Stack') {
                     $Null = $stringBuilder.AppendLine("`"$($_)`" = `"$(($line.$($_) | Out-String).Trim())`"")
                 } ElseIf ($OutputPropertyType -eq "Comma") {
-                    $Null = $stringBuilder.AppendLine("`"$($_)`" = `"$($line.$($_) -join ', ')`"")                   
+                    $Null = $stringBuilder.AppendLine("`"$($_)`" = `"$($line.$($_) -join ', ')`"")
                 }
             }
             $Null = $stringBuilder.AppendLine("}")
- 
+
             Invoke-Expression $stringBuilder.ToString()
         }
     }

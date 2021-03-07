@@ -58,8 +58,8 @@
             ForEach ($_port in $Port) {
                 $stringBuilder = New-Object Text.StringBuilder
                 $tcpClient = New-Object System.Net.Sockets.TCPClient
-                $connect = $tcpClient.BeginConnect($Computer,$_port,$null,$null) 
-                $wait = $connect.AsyncWaitHandle.WaitOne($TCPtimeout,$false) 
+                $connect = $tcpClient.BeginConnect($Computer,$_port,$null,$null)
+                $wait = $connect.AsyncWaitHandle.WaitOne($TCPtimeout,$false)
                 If (-NOT $wait) {
                     $object = [pscustomobject] @{
                         Computername = $Computer
@@ -75,12 +75,12 @@
                         If ([int64]$tcpClient.Available -gt 0) {
                             $stream = $TcpClient.GetStream()
                             $bindResponseBuffer = New-Object Byte[] -ArgumentList $tcpClient.Available
-                            [Int]$response = $stream.Read($bindResponseBuffer, 0, $bindResponseBuffer.count)  
-                            $Null = $stringBuilder.Append(($bindResponseBuffer | ForEach {[char][int]$_}) -join '')
+                            $null = $stream.Read($bindResponseBuffer, 0, $bindResponseBuffer.count)
+                            $Null = $stringBuilder.Append(($bindResponseBuffer | ForEach-Object {[char][int]$_}) -join '')
                         } Else {
                             Break
                         }
-                    } 
+                    }
                     $object = [pscustomobject] @{
                         Computername = $Computer
                         Port = $_Port

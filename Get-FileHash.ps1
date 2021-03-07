@@ -1,10 +1,10 @@
-﻿function Get-FileHash { 
+﻿function Get-FileHash {
     <#
         .SYNOPSIS
             Calculates the hash on a given file based on the seleced hash algorithm.
 
         .DESCRIPTION
-            Calculates the hash on a given file based on the seleced hash algorithm. Multiple hashing 
+            Calculates the hash on a given file based on the seleced hash algorithm. Multiple hashing
             algorithms can be used with this command.
 
         .PARAMETER Path
@@ -13,7 +13,7 @@
         .PARAMETER Algorithm
             The type of algorithm that will be used to determine the hash of a file or files.
             Default hash algorithm used is SHA256. More then 1 algorithm type can be used.
-            
+
             Available hash algorithms:
 
             MD5
@@ -37,11 +37,11 @@
             Get-FileHash -Path Test2.txt
             Path                             SHA256
             ----                             ------
-            C:\users\prox\desktop\TEST2.txt 5f8c58306e46b23ef45889494e991d6fc9244e5d78bc093f1712b0ce671acc15      
-            
+            C:\users\prox\desktop\TEST2.txt 5f8c58306e46b23ef45889494e991d6fc9244e5d78bc093f1712b0ce671acc15
+
             Description
             -----------
-            Displays the SHA256 hash for the text file.   
+            Displays the SHA256 hash for the text file.
 
         .EXAMPLE
             Get-FileHash -Path .\TEST2.txt -Algorithm MD5,SHA256,RIPEMD160 | Format-List
@@ -75,14 +75,14 @@
     Param(
        [Parameter(Position=0,Mandatory=$true, ValueFromPipelineByPropertyName=$true,ValueFromPipeline=$True)]
        [Alias("PSPath","FullName")]
-       [string[]]$Path, 
+       [string[]]$Path,
 
        [Parameter(Position=1)]
        [ValidateSet("MD5","SHA1","SHA256","SHA384","SHA512","RIPEMD160")]
        [string[]]$Algorithm = "SHA256"
     )
-    Process {  
-        ForEach ($item in $Path) { 
+    Process {
+        ForEach ($item in $Path) {
             $item = (Resolve-Path $item).ProviderPath
             If (-Not ([uri]$item).IsAbsoluteUri) {
                 Write-Verbose ("{0} is not a full path, using current directory: {1}" -f $item,$pwd)
@@ -92,16 +92,16 @@
               Write-Warning ("Cannot calculate hash for directory: {0}" -f $item)
               Return
            }
-           $object = New-Object PSObject -Property @{ 
+           $object = New-Object PSObject -Property @{
                 Path = $item
             }
             #Open the Stream
             $stream = ([IO.StreamReader]$item).BaseStream
-            foreach($Type in $Algorithm) {                
-                [string]$hash = -join ([Security.Cryptography.HashAlgorithm]::Create( $Type ).ComputeHash( $stream ) | 
-                ForEach { "{0:x2}" -f $_ })
+            foreach($Type in $Algorithm) {
+                [string]$hash = -join ([Security.Cryptography.HashAlgorithm]::Create( $Type ).ComputeHash( $stream ) |
+                ForEach-Object { "{0:x2}" -f $_ })
                 $null = $stream.Seek(0,0)
-                #If multiple algorithms are used, then they will be added to existing object                
+                #If multiple algorithms are used, then they will be added to existing object
                 $object = Add-Member -InputObject $Object -MemberType NoteProperty -Name $Type -Value $Hash -PassThru
             }
             $object.pstypenames.insert(0,'System.IO.FileInfo.Hash')

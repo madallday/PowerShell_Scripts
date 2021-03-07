@@ -4,7 +4,7 @@
             Retrieves SQL server information from a local or remote servers.
 
         .DESCRIPTION
-            Retrieves SQL server information from a local or remote servers. Pulls all 
+            Retrieves SQL server information from a local or remote servers. Pulls all
             instances from a SQL server and detects if in a cluster or not.
 
         .PARAMETER Computername
@@ -31,13 +31,13 @@
             Version           : 10.53.6000.34
             Splevel           : 3
             Clustered         : True
-            Installpath       : C:\Program Files\Microsoft SQL 
+            Installpath       : C:\Program Files\Microsoft SQL
                                 Server\MSSQL10_50.MSSQLSERVER\MSSQL
             Datapath          : D:\MSSQL10_50.MSSQLSERVER\MSSQL
             Language          : 1033
             Fileversion       : 2009.100.6000.34
             Vsname            : SQLCLU
-            Regroot           : Software\Microsoft\Microsoft SQL 
+            Regroot           : Software\Microsoft\Microsoft SQL
                                 Server\MSSQL10_50.MSSQLSERVER
             Sku               : 1804890536
             Skuname           : Enterprise Edition (64-bit)
@@ -50,7 +50,7 @@
             Sqmreporting      : False
             Iswow64           : False
             BackupDirectory   : F:\MSSQL10_50.MSSQLSERVER\MSSQL\Backup
-            AlwaysOnName      : 
+            AlwaysOnName      :
             Nodes             : {SQL1, SQL2}
             Caption           : SQL Server 2008 R2
             FullName          : SQLCLU\MSSQLSERVER
@@ -68,7 +68,7 @@
     Process {
         ForEach ($Computer in $Computername) {
             # 1 = MSSQLSERVER
-            $Filter = "SELECT * FROM SqlServiceAdvancedProperty WHERE SqlServiceType=1" 
+            $Filter = "SELECT * FROM SqlServiceAdvancedProperty WHERE SqlServiceType=1"
             $WMIParams=@{
                 Computername = $Computer
                 NameSpace='root\Microsoft\SqlServer'
@@ -105,7 +105,7 @@
             }
             Try {
                 Write-Verbose "[$Computer] Performing Registry Query"
-                $Registry = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Computer) 
+                $Registry = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Computer)
             }
             Catch {
                 Write-Warning "[$Computer] $_"
@@ -117,14 +117,14 @@
                 $ErrorActionPreference = 'Stop'
                 If ($Registry.OpenSubKey($basekeys[0])) {
                     $regPath = $basekeys[0]
-                } 
+                }
                 ElseIf ($Registry.OpenSubKey($basekeys[1])) {
                     $regPath = $basekeys[1]
-                } 
+                }
                 Else {
                     Continue
                 }
-            } 
+            }
             Catch {
                 Continue
             }
@@ -133,34 +133,31 @@
             }
             $RegKey= $Registry.OpenSubKey("$regPath")
             If ($RegKey.GetSubKeyNames() -contains "Instance Names") {
-                $RegKey= $Registry.OpenSubKey("$regpath\\Instance Names\\SQL" ) 
+                $RegKey= $Registry.OpenSubKey("$regpath\\Instance Names\\SQL" )
                 $instances = @($RegKey.GetValueNames())
-            } 
+            }
             ElseIf ($regKey.GetValueNames() -contains 'InstalledInstances') {
-                $isCluster = $False
                 $instances = $RegKey.GetValue('InstalledInstances')
-            } 
+            }
             Else {
                 Continue
             }
 
-            If ($instances.count -gt 0) { 
+            If ($instances.count -gt 0) {
                 ForEach ($Instance in $Instances) {
                     $PropertyHash['Instance']=$Instance
                     $Nodes = New-Object System.Collections.Arraylist
                     $clusterName = $Null
-                    $isCluster = $False
                     $instanceValue = $regKey.GetValue($instance)
                     $instanceReg = $Registry.OpenSubKey("$regpath\\$instanceValue")
                     If ($instanceReg.GetSubKeyNames() -contains "Cluster") {
-                        $isCluster = $True
                         $instanceRegCluster = $instanceReg.OpenSubKey('Cluster')
                         $clusterName = $instanceRegCluster.GetValue('ClusterName')
-                        $clusterReg = $Registry.OpenSubKey("Cluster\\Nodes")                            
-                        $clusterReg.GetSubKeyNames() | ForEach {
+                        $clusterReg = $Registry.OpenSubKey("Cluster\\Nodes")
+                        $clusterReg.GetSubKeyNames() | ForEach-Object {
                             $null = $Nodes.Add($clusterReg.OpenSubKey($_).GetValue('NodeName'))
-                        }                    
-                    }  
+                        }
+                    }
                     $PropertyHash['Nodes'] = $Nodes
 
                     $instanceRegSetup = $instanceReg.OpenSubKey("Setup")
@@ -174,9 +171,9 @@
                         $ErrorActionPreference = 'Stop'
                         #Get from filename to determine version
                         $servicesReg = $Registry.OpenSubKey("SYSTEM\\CurrentControlSet\\Services")
-                        $serviceKey = $servicesReg.GetSubKeyNames() | Where {
+                        $serviceKey = $servicesReg.GetSubKeyNames() | Where-Object {
                             $_ -eq ('MSSQL${0}' -f $instance)
-                        } | Select -First 1
+                        } | Select-Object -First 1
                         $service = $servicesReg.OpenSubKey($serviceKey).GetValue('ImagePath')
                         $file = $service -replace '^.*(\w:\\.*\\sqlservr.exe).*','$1'
                         $PropertyHash['version'] =(Get-Item ("\\$Computer\$($file -replace ":","$")")).VersionInfo.ProductVersion
@@ -195,11 +192,11 @@
                             $WMIParams.NameSpace="root\Microsoft\SqlServer\$Namespace"
                             $WMIParams.Query=$Filter
 
-                            $WMIResults = Get-WMIObject @WMIParams 
-                            $GroupResults = $WMIResults | Group ServiceName
+                            $WMIResults = Get-WMIObject @WMIParams
+                            $GroupResults = $WMIResults | Group-Object ServiceName
                             $PropertyHash['Instance'] = $GroupResults.Name
-                            $WMIResults | ForEach {
-                                $Name = "{0}{1}" -f ($_.PropertyName.SubString(0,1),$_.PropertyName.SubString(1).ToLower())    
+                            $WMIResults | ForEach-Object {
+                                $Name = "{0}{1}" -f ($_.PropertyName.SubString(0,1),$_.PropertyName.SubString(1).ToLower())
                                 $Data = If ($_.PropertyStrValue) {
                                     $_.PropertyStrValue
                                 }
@@ -209,22 +206,22 @@
                                     }
                                     Else {
                                         $_.PropertyNumValue
-                                    }        
+                                    }
                                 }
                                 $PropertyHash[$Name] = $Data
                             }
 
                             #region Always on availability group
-                            if ($PropertyHash['Version'].Major -ge 11) {                                          
+                            if ($PropertyHash['Version'].Major -ge 11) {
                                 $splat.Query="SELECT WindowsFailoverClusterName FROM HADRServiceSettings WHERE InstanceName = '$($Group.Name)'"
                                 $PropertyHash['AlwaysOnName'] = (Get-WmiObject @WMIParams).WindowsFailoverClusterName
                                 if ($PropertyHash['AlwaysOnName']) {
                                     $PropertyHash.SqlServer = $PropertyHash['AlwaysOnName']
                                 }
-                            } 
+                            }
                             else {
                                 $PropertyHash['AlwaysOnName'] = $null
-                            }  
+                            }
                             #endregion Always on availability group
 
                             #region Backup Directory
@@ -259,11 +256,11 @@
                         $PropertyHash['SqlServer'] = $Computer
                     }
                     $PropertyHash['FullName'] = ("{0}\{1}" -f $Name,$PropertyHash['Instance'])
-                    #emdregion Full SQL Name                        
+                    #emdregion Full SQL Name
                     $Object = [pscustomobject]$PropertyHash
                     $Object.pstypenames.insert(0,'SQLServer.Information')
                     $Object
-                }#FOREACH INSTANCE                 
+                }#FOREACH INSTANCE
             }#IF
         }
     }

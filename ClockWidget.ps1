@@ -40,7 +40,7 @@
         Description
         -----------
         Clock is displayed on screen with alternate colors as hex values
-            
+
 #>
 Param (
     [parameter()]
@@ -56,14 +56,14 @@ $Clockhash.DateColor = $DateColor
 $Runspacehash.runspace = [RunspaceFactory]::CreateRunspace()
 $Runspacehash.runspace.ApartmentState = “STA”
 $Runspacehash.runspace.ThreadOptions = “ReuseThread”
-$Runspacehash.runspace.Open() 
-$Runspacehash.psCmd = {Add-Type -AssemblyName PresentationCore,PresentationFramework,WindowsBase}.GetPowerShell() 
+$Runspacehash.runspace.Open()
+$Runspacehash.psCmd = {Add-Type -AssemblyName PresentationCore,PresentationFramework,WindowsBase}.GetPowerShell()
 $Runspacehash.runspace.SessionStateProxy.SetVariable("Clockhash",$Clockhash)
 $Runspacehash.runspace.SessionStateProxy.SetVariable("Runspacehash",$Runspacehash)
 $Runspacehash.runspace.SessionStateProxy.SetVariable("TimeColor",$TimeColor)
 $Runspacehash.runspace.SessionStateProxy.SetVariable("DateColor",$DateColor)
-$Runspacehash.psCmd.Runspace = $Runspacehash.runspace 
-$Runspacehash.Handle = $Runspacehash.psCmd.AddScript({ 
+$Runspacehash.psCmd.Runspace = $Runspacehash.runspace
+$Runspacehash.Handle = $Runspacehash.psCmd.AddScript({
 
  $Script:Update = {
     $day,$Month, $Day_n, $Year, $Time, $AMPM = (Get-Date -f "dddd,MMMM,dd,yyyy,hh:mm,tt") -Split ','
@@ -73,47 +73,47 @@ $Runspacehash.Handle = $Runspacehash.psCmd.AddScript({
     $Clockhash.ampm_txtbx.text = $AMPM
     $Clockhash.day_n_txtbx.text = $Day_n
     $Clockhash.month_txtbx.text = $Month
-    $Clockhash.year_txtbx.text = $year   
+    $Clockhash.year_txtbx.text = $year
 }
 
 [xml]$xaml = @"
-<Window 
+<Window
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         WindowStyle = "None" WindowStartupLocation = "CenterScreen" SizeToContent = "WidthAndHeight" ShowInTaskbar = "False"
         ResizeMode = "NoResize" Title = "Weather" AllowsTransparency = "True" Background = "Transparent" Opacity = "1" Topmost = "True">
     <Grid x:Name = "Grid" Background = "Transparent">
-        <TextBlock x:Name = "time_txtbox" FontSize = "72" Foreground = "$($Clockhash.TimeColor)" VerticalAlignment="Top" 
+        <TextBlock x:Name = "time_txtbox" FontSize = "72" Foreground = "$($Clockhash.TimeColor)" VerticalAlignment="Top"
         HorizontalAlignment="Left" Margin="0,-26,0,0">
                 <TextBlock.Effect>
                     <DropShadowEffect Color = "Black" ShadowDepth = "1" BlurRadius = "5" />
                 </TextBlock.Effect>
         </TextBlock>
-        <TextBlock x:Name = "ampm_txtbx" FontSize=  "20" Foreground = "$($Clockhash.TimeColor)" Margin  = "133,0,0,0" 
+        <TextBlock x:Name = "ampm_txtbx" FontSize=  "20" Foreground = "$($Clockhash.TimeColor)" Margin  = "133,0,0,0"
         HorizontalAlignment="Left">
                 <TextBlock.Effect>
                     <DropShadowEffect Color = "Black" ShadowDepth = "1" BlurRadius = "2" />
                 </TextBlock.Effect>
         </TextBlock>
-        <TextBlock x:Name = "day_n_txtbx" FontSize=  "38" Foreground = "$($Clockhash.DateColor)" Margin="5,42,0,0" 
+        <TextBlock x:Name = "day_n_txtbx" FontSize=  "38" Foreground = "$($Clockhash.DateColor)" Margin="5,42,0,0"
         HorizontalAlignment="Left">
                 <TextBlock.Effect>
                     <DropShadowEffect Color = "Black" ShadowDepth = "1" BlurRadius = "2" />
                 </TextBlock.Effect>
         </TextBlock>
-        <TextBlock x:Name = "month_txtbx" FontSize=  "20" Foreground = "$($Clockhash.DateColor)" Margin="54,48,0,0" 
+        <TextBlock x:Name = "month_txtbx" FontSize=  "20" Foreground = "$($Clockhash.DateColor)" Margin="54,48,0,0"
         HorizontalAlignment="Left">
                 <TextBlock.Effect>
                     <DropShadowEffect Color = "Black" ShadowDepth = "1" BlurRadius = "2" />
                 </TextBlock.Effect>
         </TextBlock>
-        <TextBlock x:Name = "day_txtbx" FontSize=  "15" Foreground = "$($Clockhash.DateColor)" Margin="54,68,0,0" 
+        <TextBlock x:Name = "day_txtbx" FontSize=  "15" Foreground = "$($Clockhash.DateColor)" Margin="54,68,0,0"
         HorizontalAlignment="Left">
                 <TextBlock.Effect>
                     <DropShadowEffect Color = "Black" ShadowDepth = "1" BlurRadius = "2" />
                 </TextBlock.Effect>
         </TextBlock>
-        <TextBlock x:Name = "year_txtbx" FontSize=  "38" Foreground = "$($Clockhash.DateColor)" Margin="0,42,0,0" 
+        <TextBlock x:Name = "year_txtbx" FontSize=  "38" Foreground = "$($Clockhash.DateColor)" Margin="0,42,0,0"
         HorizontalAlignment="Left">
                 <TextBlock.Effect>
                     <DropShadowEffect Color = "Black" ShadowDepth = "1" BlurRadius = "2" />
@@ -122,7 +122,7 @@ $Runspacehash.Handle = $Runspacehash.psCmd.AddScript({
     </Grid>
 </Window>
 "@
- 
+
 $reader=(New-Object System.Xml.XmlNodeReader $xaml)
 $Clockhash.Window=[Windows.Markup.XamlReader]::Load( $reader )
 
@@ -137,7 +137,7 @@ $Clockhash.day_txtbx = $Clockhash.Window.FindName("day_txtbx")
 $Clockhash.Window.Add_SourceInitialized({
     #Create Timer object
     Write-Verbose "Creating timer object"
-    $Script:timer = new-object System.Windows.Threading.DispatcherTimer 
+    $Script:timer = new-object System.Windows.Threading.DispatcherTimer
     #Fire off every 1 minutes
     Write-Verbose "Adding 1 minute interval to timer object"
     $timer.Interval = [TimeSpan]"0:0:1.00"
@@ -146,7 +146,7 @@ $Clockhash.Window.Add_SourceInitialized({
     $timer.Add_Tick({
     $Update.Invoke()
     [Windows.Input.InputEventHandler]{ $Clockhash.Window.UpdateLayout() }
-    
+
 })
     #Start timer
     Write-Verbose "Starting Timer"
@@ -154,30 +154,30 @@ $Clockhash.Window.Add_SourceInitialized({
     If (-NOT $timer.IsEnabled) {
         $Clockhash.Window.Close()
     }
-}) 
+})
 
 $Clockhash.Window.Add_Closed({
     $timer.Stop()
     $Runspacehash.PowerShell.Dispose()
-    
+
     [gc]::Collect()
-    [gc]::WaitForPendingFinalizers()    
+    [gc]::WaitForPendingFinalizers()
 })
 $Clockhash.month_txtbx.Add_SizeChanged({
-    [int]$clockhash.length = [math]::Round(($Clockhash.day_txtbx.ActualWidth,$Clockhash.month_txtbx.ActualWidth | 
-        Sort -Descending)[0])
+    [int]$clockhash.length = [math]::Round(($Clockhash.day_txtbx.ActualWidth,$Clockhash.month_txtbx.ActualWidth |
+        Sort-Object -Descending)[0])
     [int]$Adjustment = $clockhash.length + 52 + 10 #Hard coded margin plus white space
-    
+
     $YearMargin = $Clockhash.year_txtbx.Margin
     $Clockhash.year_txtbx.Margin = ("{0},{1},{2},{3}" -f ($Adjustment),
         $YearMargin.Top,$YearMargin.Right,$YearMargin.Bottom)
 })
 $Clockhash.time_txtbox.Add_SizeChanged({
-    If ($Clockhash.time_txtbox.text.length -eq 4) {        
+    If ($Clockhash.time_txtbox.text.length -eq 4) {
         $Clockhash.ampm_txtbx.Margin  = "133,0,86,0"
     } Else {
         $Clockhash.ampm_txtbx.Margin  = "172,0,48,0"
-    }     
+    }
 })
 $Clockhash.Window.Add_MouseRightButtonUp({
     $This.close()

@@ -1,54 +1,54 @@
 ﻿Function Out-Voice {
-    <# 
-    .SYNOPSIS 
+    <#
+    .SYNOPSIS
         Used to allow PowerShell to speak to you or sends data to a WAV file for later listening.
-         
-    .DESCRIPTION 
+
+    .DESCRIPTION
         Used to allow PowerShell to speak to you or sends data to a WAV file for later listening.
-       
+
     .PARAMETER InputObject
         Data that will be spoken or sent to a WAV file.
 
     .PARAMETER Rate
         Sets the speaking rate
-   
+
     .PARAMETER Volume
         Sets the output volume
- 
+
     .PARAMETER ToWavFile
         Append output to a Waveform audio format file in a specified format
-   
-    .NOTES 
+
+    .NOTES
         Name: Out-Voice
         Author: Boe Prox
         DateCreated: 12/4/2013
 
-        To Do: 
+        To Do:
             -Support for other installed voices
- 
+
     .EXAMPLE
         "This is a test" | Out-Voice
- 
+
         Description
         -----------
         Speaks the string that was given to the function in the pipeline.
- 
+
     .EXAMPLE
         "Today's date is $((get-date).toshortdatestring())" | Out-Voice
- 
+
         Description
         -----------
         Says todays date
- 
+
      .EXAMPLE
         "Today's date is $((get-date).toshortdatestring())" | Out-Voice -ToWavFile "C:\temp\test.wav"
- 
+
         Description
         -----------
         Says todays date
 
     #>
- 
+
     [cmdletbinding(
         )]
     Param (
@@ -66,7 +66,7 @@
     Begin {
         $Script:parameter = $PSBoundParameters
         Write-Verbose "Listing parameters being used"
-        $PSBoundParameters.GetEnumerator() | ForEach {
+        $PSBoundParameters.GetEnumerator() | ForEach-Object {
             Write-Verbose "$($_)"
         }
         Write-Verbose "Loading assemblies"
@@ -94,8 +94,8 @@
     }
     Process {
         ForEach ($line in $inputobject) {
-            Write-Verbose "Speaking: $line"       
-            $Speak.SpeakAsync(($line | Out-String)) | Out-Null       
+            Write-Verbose "Speaking: $line"
+            $Speak.SpeakAsync(($line | Out-String)) | Out-Null
         }
     }
     End {

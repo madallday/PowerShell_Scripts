@@ -115,7 +115,7 @@
 
     $Title = ((@($Data.ParsedHtml.getElementsByTagName('Title'))[0].Text -replace '.*USGS(.*)','$1').Trim() -replace ',|\.') -replace ' ','-'
     Write-Verbose "[$($Title)]"
-    @($Data.ParsedHtml.getElementsByTagName('Table'))[3].InnerText -split '\r\n' | ForEach {
+    @($Data.ParsedHtml.getElementsByTagName('Table'))[3].InnerText -split '\r\n' | ForEach-Object {
         If ($_ -match $RegEx) {
             $Object = [pscustomobject]@{
                 Location = $Title

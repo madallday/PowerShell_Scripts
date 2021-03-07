@@ -10,7 +10,7 @@
             Name of the computer to query
 
         .PARAMETER Path
-            The full path to a specified event log that has been archived or saved to 
+            The full path to a specified event log that has been archived or saved to
             a filesystem location.
 
         .NOTES
@@ -54,14 +54,14 @@
     <Select Path="System">*[System[(EventID=7036)]]</Select>
   </Query>
 </QueryList>
-"@        
+"@
         }
     }
     Process {
         Switch ($PScmdlet.ParameterSetName) {
             'Computer' {
                 ForEach ($Computer in $Computername) {
-                    Get-WinEvent -ComputerName $Computer -LogName System -FilterXPath $Query | ForEach {
+                    Get-WinEvent -ComputerName $Computer -LogName System -FilterXPath $Query | ForEach-Object {
                         $Properties = $_.Properties
                         [pscustomobject] @{
                             Computername = $_.MachineName
@@ -76,7 +76,7 @@
                 ForEach ($Item in $Path) {
                     $SearchQuery = $Query -Replace 'TOREPLACE',$Item
                     Write-Verbose $SearchQuery
-                    Get-WinEvent -Path $Item -FilterXPath $SearchQuery  | ForEach {
+                    Get-WinEvent -Path $Item -FilterXPath $SearchQuery  | ForEach-Object {
                         $Properties = $_.Properties
                         [pscustomobject] @{
                             Computername = $_.MachineName

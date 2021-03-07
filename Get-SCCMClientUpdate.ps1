@@ -2,27 +2,27 @@
 <#
     .SYNOPSIS
         Allows you to query for updates via the SCCM Client Agent
-    
+
     .DESCRIPTION
         Allows you to query for updates via the SCCM Client Agent
-    
+
     .PARAMETER ShowHidden
         If in Quiet mode, use ShowHidden to view updates.
-    
+
     .PARAMETER UpdateAction
         Define the type of action to query for.
-    
+
         The following values are allowed:
         Install - This setting retrieves all updates that are available to be installed or in the process of being installed.
-        Uninstall - This setting retrieves updates that are already installed and are available to be uninstalled. 
-    
+        Uninstall - This setting retrieves updates that are already installed and are available to be uninstalled.
+
     .NOTES
         Author: Boe Prox
         Created: 3July2012
         Name: Get-SCCMClientUpdate
-    
+
     .EXAMPLE
-        Get-SCCMClientUpdate -ShowHidden | Format-Table Name,KB,BulletinID,EnforcementDeadline,UpdateStatus 
+        Get-SCCMClientUpdate -ShowHidden | Format-Table Name,KB,BulletinID,EnforcementDeadline,UpdateStatus
 
         Name                    KB                      BulletinID              EnforcementDeadline     UpdateStatus
         ----                    --                      ----------              -------------------     ------------
@@ -37,8 +37,8 @@
         Update for Windows V... 2677070                 {}                      6/26/2012 1:00:00 AM    JobStateWaitInstall
         Update for Windows V... 2718704                 {}                      6/26/2012 1:00:00 AM    JobStateWaitInstall
         Security Update for ... 2685939                 {MS12-036}              6/26/2012 1:00:00 AM    JobStateWaitInstall
-        Windows Malicious So... 890830                  {}                      6/26/2012 1:00:00 AM    JobStateWaitInstall     
-        
+        Windows Malicious So... 890830                  {}                      6/26/2012 1:00:00 AM    JobStateWaitInstall
+
         Description
         -----------
         This command will show all updates waiting to be installed on SCCM Client.
@@ -52,10 +52,10 @@
         [string]$UpdateAction = 'Install'
     )
     Begin {
-        $PSBoundParameters.GetEnumerator() | ForEach {
+        $PSBoundParameters.GetEnumerator() | ForEach-Object {
             Write-Verbose ("{0}" -f $_)
         }
-        
+
         $Action = [hashtable]@{
             Install = 2
             Uninstall = 3
@@ -78,8 +78,8 @@
             14 = 'JobStateInstallComplete'
             15 = 'JobStateStateError'
             16 = 'JobStateWaitServiceWindo'
-        }   
-        [ref]$progress = $Null            
+        }
+        [ref]$progress = $Null
     }
     Process {
         Write-Verbose ("UpdateAction: {0}" -f $UpdateAction)
@@ -92,7 +92,7 @@
             )
             $Count = $updates.GetCount()
         } Catch {
-            Write-Warning ("{0}" -f $_.Exception.Message)        
+            Write-Warning ("{0}" -f $_.Exception.Message)
         }
         If ($Count -gt 0) {
             Write-Verbose ("Found {0} updates!" -f $Count)
@@ -100,7 +100,7 @@
                 For ($i=0;$i -lt $Count;$i++) {
                     [ref]$status = $Null
                     [ref]$Complete = $Null
-                    [ref]$Errors = $Null                 
+                    [ref]$Errors = $Null
                     $update = $updates.GetUpdate($i)
                     $UpdateObject = New-Object PSObject -Property @{
                         KB = $update.GetArticleID()
@@ -115,7 +115,7 @@
                         NotificationOption = $update.GetNotificationOption()
                         Progress = $update.GetProgress($status,$Complete,$Errors)
                         UpdateStatus = $statusHash[$status.value]
-                        ErrorCode = $Errors.Value                        
+                        ErrorCode = $Errors.Value
                         RebootDeadling = $update.GetRebootDeadline()
                         State = $update.GetState()
                         Summary = $update.GetSummary(1033)

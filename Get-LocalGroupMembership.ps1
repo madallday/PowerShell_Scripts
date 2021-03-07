@@ -11,17 +11,17 @@
 
         .PARAMETER Computername
             Local or remote computer/s to perform the query against.
-            
+
             Default value is the local system.
 
         .PARAMETER Group
             Name of the group to query on a system for all members.
-            
+
             Default value is 'Administrators'
 
         .PARAMETER Depth
-            Limit the recursive depth of a query. 
-            
+            Limit the recursive depth of a query.
+
             Default value is 2147483647.
 
         .PARAMETER Throttle
@@ -54,15 +54,15 @@
             Administrator     Domain Admins       False Domain DC1              2
             Sysops Admins     Administrators       True Domain DC1              1
             Org Admins        Sysops Admins        True Domain DC1              2
-            Enterprise Admins Sysops Admins        True Domain DC1              2       
-            
+            Enterprise Admins Sysops Admins        True Domain DC1              2
+
             Description
             -----------
-            Gets all of the members of the 'Administrators' group on the local system.        
-            
+            Gets all of the members of the 'Administrators' group on the local system.
+
         .EXAMPLE
             Get-LocalGroupMembership -Group 'Administrators' -Depth 1
-            
+
             Name              ParentGroup    isGroup Type   Computername Depth
             ----              -----------    ------- ----   ------------ -----
             Administrator     Administrators   False Domain DC1              1
@@ -72,12 +72,12 @@
             proxb             Administrators   False Domain DC1              1
             Enterprise Admins Administrators    True Domain DC1              1
             Domain Admins     Administrators    True Domain DC1              1
-            Sysops Admins     Administrators    True Domain DC1              1   
-            
+            Sysops Admins     Administrators    True Domain DC1              1
+
             Description
             -----------
-            Gets the members of 'Administrators' with only 1 level of recursion.         
-            
+            Gets the members of 'Administrators' with only 1 level of recursion.
+
     #>
     [cmdletbinding()]
     Param (
@@ -93,7 +93,7 @@
         [int]$Throttle = 10
     )
     Begin {
-        $PSBoundParameters.GetEnumerator() | ForEach {
+        $PSBoundParameters.GetEnumerator() | ForEach-Object {
             Write-Verbose $_
         }
         #region Extra Configurations
@@ -108,34 +108,34 @@
                 [switch]$Wait
             )
             Do {
-                $more = $false         
+                $more = $false
                 Foreach($runspace in $runspaces) {
                     If ($runspace.Runspace.isCompleted) {
                         $runspace.powershell.EndInvoke($runspace.Runspace)
                         $runspace.powershell.dispose()
                         $runspace.Runspace = $null
-                        $runspace.powershell = $null                 
-                    } ElseIf ($runspace.Runspace -ne $null) {
+                        $runspace.powershell = $null
+                    } ElseIf ($null -ne $runspace.Runspace) {
                         $more = $true
                     }
                 }
                 If ($more -AND $PSBoundParameters['Wait']) {
                     Start-Sleep -Milliseconds 100
-                }   
+                }
                 #Clean out unused runspace jobs
                 $temphash = $runspaces.clone()
-                $temphash | Where {
-                    $_.runspace -eq $Null
-                } | ForEach {
+                $temphash | Where-Object {
+                    $null -eq $_.runspace
+                } | ForEach-Object {
                     Write-Verbose ("Removing {0}" -f $_.computer)
                     $Runspaces.remove($_)
-                }             
+                }
             } while ($more -AND $PSBoundParameters['Wait'])
         }
 
         #region ScriptBlock
             $scriptBlock = {
-            Param ($Computer,$Group,$Depth,$NetBIOSDomain,$ObjNT,$Translate)            
+            Param ($Computer,$Group,$Depth,$NetBIOSDomain,$ObjNT,$Translate)
             $Script:Depth = $Depth
             $Script:ObjNT = $ObjNT
             $Script:Translate = $Translate
@@ -149,9 +149,9 @@
                 # Invoke the Members method and convert to an array of member objects.
                 #Change3 comment from web page by Craig Dempsey to fixe Powershell 5.0 issue
 				#$Members= @($LocalGroup.psbase.Invoke("Members"))
-                $Members= @($LocalGroup.psbase.Invoke("Members")) | foreach{([System.DirectoryServices.DirectoryEntry]$_)}
+                $Members= @($LocalGroup.psbase.Invoke("Members")) | ForEach-Object{([System.DirectoryServices.DirectoryEntry]$_)}
 				$Counter++
-                ForEach ($Member In $Members) {                
+                ForEach ($Member In $Members) {
                     Try {
 						#Change3
                         #$Name = $Member.GetType().InvokeMember("Name", 'GetProperty', $Null, $Member, $Null)
@@ -215,9 +215,9 @@
                 [cmdletbinding()]
                 Param (
                     [parameter()]
-                    $DomainGroup, 
+                    $DomainGroup,
                     [parameter()]
-                    [string]$NTName, 
+                    [string]$NTName,
                     [parameter()]
                     [string]$blnNT
                 )
@@ -230,8 +230,8 @@
                     } Else {
                         $DN = $DomainGroup.distinguishedName
                         $ADGroup = $DomainGroup
-                    }         
-                    $Counter++   
+                    }
+                    $Counter++
                     ForEach ($MemberDN In $ADGroup.Member) {
                         $MemberGroup = [ADSI]("LDAP://{0}" -f ($MemberDN -replace '/','\/'))
                         #Change2 by Kensel - Add the Group to the output
@@ -245,14 +245,14 @@
 							Group = $Group
                         }
                         # Check if this member is a group.
-                        If ($MemberGroup.Class -eq "group") {              
+                        If ($MemberGroup.Class -eq "group") {
                             If ($Counter -lt $Depth) {
                                 If ($Groups[$MemberGroup.name[0]] -notcontains 'Domain') {
                                     Write-Verbose ("{0}: Getting domain group members" -f $MemberGroup.name[0])
                                     $Groups[$MemberGroup.name[0]] += ,'Domain'
                                     # Enumerate members of domain group.
                                     Get-DomainGroupMember $MemberGroup $MemberGroup.Name[0] $False
-                                }                                                
+                                }
                             }
                         }
                     }
@@ -286,52 +286,52 @@
 
             # Retrieve NetBIOS name of the current domain.
             $objNT.InvokeMember("Set", "InvokeMethod", $Null, $Translate, (1, "$Base"))
-            [string]$Script:NetBIOSDomain =$objNT.InvokeMember("Get", "InvokeMethod", $Null, $Translate, 3)  
-        } Catch {Write-Warning ("{0}" -f $_.Exception.Message)}         
-        
+            [string]$Script:NetBIOSDomain =$objNT.InvokeMember("Get", "InvokeMethod", $Null, $Translate, 3)
+        } Catch {Write-Warning ("{0}" -f $_.Exception.Message)}
+
         #region Runspace Creation
         Write-Verbose ("Creating runspace pool and session states")
         $sessionstate = [system.management.automation.runspaces.initialsessionstate]::CreateDefault()
         $runspacepool = [runspacefactory]::CreateRunspacePool(1, $Throttle, $sessionstate, $Host)
-        $runspacepool.Open()  
-        
+        $runspacepool.Open()
+
         Write-Verbose ("Creating empty collection to hold runspace jobs")
-        $Script:runspaces = New-Object System.Collections.ArrayList        
+        $Script:runspaces = New-Object System.Collections.ArrayList
         #endregion Runspace Creation
     }
 
     Process {
         ForEach ($Computer in $Computername) {
-            #Create the powershell instance and supply the scriptblock with the other parameters 
+            #Create the powershell instance and supply the scriptblock with the other parameters
             $powershell = [powershell]::Create().AddScript($scriptBlock).AddArgument($computer).AddArgument($Group).AddArgument($Depth).AddArgument($NetBIOSDomain).AddArgument($ObjNT).AddArgument($Translate)
-           
+
             #Add the runspace into the powershell instance
             $powershell.RunspacePool = $runspacepool
-           
+
             #Create a temporary collection for each runspace
             $temp = "" | Select-Object PowerShell,Runspace,Computer
             $Temp.Computer = $Computer
             $temp.PowerShell = $powershell
-           
+
             #Save the handle output when calling BeginInvoke() that will be used later to end the runspace
             $temp.Runspace = $powershell.BeginInvoke()
             Write-Verbose ("Adding {0} collection" -f $temp.Computer)
             $runspaces.Add($temp) | Out-Null
-           
+
             Write-Verbose ("Checking status of runspace jobs")
-            Get-RunspaceData @runspacehash   
+            Get-RunspaceData @runspacehash
         }
     }
     End {
-        Write-Verbose ("Finish processing the remaining runspace jobs: {0}" -f (@(($runspaces | Where {$_.Runspace -ne $Null}).Count)))
+        Write-Verbose ("Finish processing the remaining runspace jobs: {0}" -f (@(($runspaces | Where-Object {$null -ne $_.Runspace}).Count)))
         $runspacehash.Wait = $true
         Get-RunspaceData @runspacehash
-    
+
         #region Cleanup Runspace
         Write-Verbose ("Closing the runspace pool")
-        $runspacepool.close()  
-        $runspacepool.Dispose() 
-        #endregion Cleanup Runspace    
+        $runspacepool.close()
+        $runspacepool.Dispose()
+        #endregion Cleanup Runspace
     }
 }
 
